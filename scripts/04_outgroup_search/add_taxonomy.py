@@ -1,6 +1,10 @@
 #!/usr/bin/env python3
 """Attach the taxonomic lineage to every blastp hit.
 
+Hits whose taxid has no lineage in the taxonomy dump (deleted since the BLAST
+database was built) are dropped, so they are not counted as hits outside the
+target's taxa.
+
 Inputs : ${PROJECT_ROOT}/blast_results/blastp_nr.tsv
          ${PROJECT_ROOT}/blast_results/taxid_lineage_lookup.tsv
 Output : ${PROJECT_ROOT}/blast_results/results_with_taxonomy.tsv
@@ -32,10 +36,13 @@ lineage = pd.read_csv(
     names=["taxid", "full_lineage", "phylum", "class", "order", "family", "genus", "species"],
     dtype={"taxid": str}
 )
-lineage = lineage.drop(columns=["full_lineage"])  # don't need the raw string version
-
 merged = blast.merge(lineage, left_on="staxids", right_on="taxid", how="left")
-merged = merged.drop(columns=["taxid"])
+
+unresolved = merged["full_lineage"].fillna("").eq("")
+print(f"Rows without a lineage (taxid unknown to the taxonomy dump), dropped: {unresolved.sum()}"
+      f" ({merged.loc[unresolved, 'staxids'].nunique()} taxids)")
+merged = merged[~unresolved]
+merged = merged.drop(columns=["taxid", "full_lineage"])  # don't need the raw string version
 
 merged.to_csv(work_path("blast_results", "results_with_taxonomy.tsv"), sep="\t", index=False)
 print(f"Total rows: {len(merged)}")

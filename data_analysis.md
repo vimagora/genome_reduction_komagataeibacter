@@ -143,8 +143,10 @@ retrieves the lineage of every hit taxon with taxonkit:
 bash scripts/04_outgroup_search/taxonomy_lookup.sh
 ```
 
-Output: `blast_results/taxid_lineage_lookup.tsv`. Both tables are read by
-`add_taxonomy.py`, which joins them:
+Output: `blast_results/taxid_lineage_lookup.tsv` and `taxonkit_warnings.log`
+(taxids of the BLAST database that were merged or deleted in the current
+taxonomy). Both tables are read by `add_taxonomy.py`, which joins them and drops
+hits whose taxid has no lineage:
 
 ```bash
 "$PY" scripts/04_outgroup_search/add_taxonomy.py
