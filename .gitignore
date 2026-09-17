@@ -1,0 +1,29 @@
+# Local working files, not part of the published pipeline
+archive/
+
+# SLURM logs written by the scripts
+logs/
+
+# Windows download metadata
+*:Zone.Identifier
+
+# Python
+__pycache__/
+*.pyc
+
+# Instructions for the AI assistant that prepared this code drop
+CLAUDE.md
+
+# Personal paths and settings (overrides config/config.env)
+config/local.env
+
+# Pipeline outputs, in case PROJECT_ROOT is the repository itself
+/genomes/
+/busco/
+/region/
+/blast_results/
+/orthofinder/
+/gtdbtk/
+/hgt_analysis/
+/figures/
+/statistics/

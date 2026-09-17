@@ -1,0 +1,8 @@
+name: ncbi-tools
+channels:
+  - conda-forge
+  - bioconda
+dependencies:
+  - ncbi-datasets-cli
+  - taxonkit=0.9.0
+  - blast=2.17
