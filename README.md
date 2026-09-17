@@ -45,3 +45,7 @@ assumes a SLURM cluster for the heavy steps; the others run with `bash` or `pyth
 All inputs are public NCBI records listed in `config/genomes.tsv`. The
 *K. rhaeticus* iGEM-hybrid genome and its sequencing reads are available under
 <TODO: accession>; see also the Data Availability statement of the article.
+
+## License
+
+The code is released under the MIT License; see `LICENSE`.
