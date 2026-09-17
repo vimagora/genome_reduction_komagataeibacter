@@ -38,6 +38,19 @@ BLAST database with its taxonomy files (`BLASTP_DB`), and the command that makes
 `blastp` available (`BLAST_SETUP`; on CSC Roihu, the `blast-plus` module). BUSCO
 downloads its lineage datasets into `BUSCO_DOWNLOADS` on first use.
 
+The NCBI taxonomy dump is downloaded into `TAXONKIT_DB` (where internet is
+available); only the four `.dmp` files read by taxonkit are extracted:
+
+```bash
+mkdir -p "$TAXONKIT_DB"
+wget -P "$TAXONKIT_DB" https://ftp.ncbi.nlm.nih.gov/pub/taxonomy/taxdump.tar.gz \
+                       https://ftp.ncbi.nlm.nih.gov/pub/taxonomy/taxdump.tar.gz.md5
+(cd "$TAXONKIT_DB" && md5sum -c taxdump.tar.gz.md5 \
+    && tar -xzf taxdump.tar.gz names.dmp nodes.dmp delnodes.dmp merged.dmp)
+```
+
+The taxonomy is updated frequently; record the download date.
+
 **Each session.** Load the configuration and create the SLURM log folders:
 
 ```bash
