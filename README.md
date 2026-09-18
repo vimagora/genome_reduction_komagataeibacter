@@ -1,7 +1,7 @@
-# HGT analysis scripts — *Komagataeibacter rhaeticus* iGEM-hybrid
+# HGT analysis scripts — *Komagataeibacter rhaeticus* iGEM
 
 Analysis scripts for detecting horizontal gene transfer (HGT) in a 220 kb region
-of the *K. rhaeticus* iGEM-hybrid genome.
+of the *K. rhaeticus* iGEM genome.
 
 Used for the analyses described in <TODO: paper reference / preprint URL when available>.
 Contact the corresponding author for questions about the paper itself;
@@ -21,13 +21,13 @@ open an issue here for questions about the scripts.
 
 ## Reproducing
 
-The pipeline starts from the assembly of the *K. rhaeticus* iGEM-hybrid genome
-and public NCBI records: it rotates and annotates the iGEM-hybrid assembly (dnaapler,
+The pipeline starts from the assembly of the *K. rhaeticus* iGEM genome
+and public NCBI records: it rotates and annotates the iGEM assembly (dnaapler,
 Bakta), downloads the reference genomes with their NCBI annotations, and every
 other file is produced by the scripts. It assumes a SLURM cluster for the heavy
 steps; the others run with `bash` or `python3`.
 
-1. Put your paths, including the iGEM-hybrid assembly (`TARGET_ASSEMBLY`), in
+1. Put your paths, including the iGEM assembly (`TARGET_ASSEMBLY`), in
    `config/local.env` (overrides `config/config.env`).
 2. Create the conda environments from `envs/`.
 3. Follow `data_analysis.md` from step 0.
@@ -47,7 +47,7 @@ steps; the others run with `bash` or `python3`.
 ## Data availability
 
 The reference genomes are public NCBI records listed in `config/genomes.tsv`. The
-*K. rhaeticus* iGEM-hybrid genome and its sequencing reads are available under
+*K. rhaeticus* iGEM genome and its sequencing reads are available under
 <TODO: accession>; see also the Data Availability statement of the article.
 
 ## License
