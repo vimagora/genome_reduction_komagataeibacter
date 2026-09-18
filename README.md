@@ -17,6 +17,7 @@ open an issue here for questions about the scripts.
   - `config.env` — paths and analysis settings
 - `scripts/` — one folder per pipeline stage, numbered in running order.
 - `envs/` — conda environment files.
+- `deprecated/` — deprecated steps of the pipeline.
 
 ## Reproducing
 
@@ -26,7 +27,7 @@ assumes a SLURM cluster for the heavy steps; the others run with `bash` or `pyth
 
 1. Put your paths in `config/local.env` (overrides `config/config.env`), and fill in
    the `<TODO>` accessions in `config/genomes.tsv` and `config/region.tsv`.
-2. Create the conda environments from `envs/` and install RANGER-DTL.
+2. Create the conda environments from `envs/`.
 3. Follow `data_analysis.md` from step 0.
 
 | Tool | Version | Environment |
@@ -38,7 +39,6 @@ assumes a SLURM cluster for the heavy steps; the others run with `bash` or `pyth
 | OrthoFinder | 2.5.5 | `envs/orthofinder.yaml` |
 | GTDB-Tk | 2.7.2 (reference data release 232) | `envs/gtdbtk.yaml` |
 | ete3, pandas, matplotlib | not pinned (Python 3.10) | `envs/ete3.yaml` |
-| RANGER-DTL | <TODO: version> | standalone binary |
 
 ## Data availability
 
@@ -49,3 +49,9 @@ All inputs are public NCBI records listed in `config/genomes.tsv`. The
 ## License
 
 The code is released under the MIT License; see `LICENSE`.
+
+## Deprecated analysis
+
+`deprecated/discarded_analysis.md` describes an HGT inference with RANGER-DTL
+that is not part of the article; it is kept for reference. The article's HGT
+analysis used alternative methods, which are described in the article.

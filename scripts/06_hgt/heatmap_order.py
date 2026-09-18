@@ -10,7 +10,7 @@ Outputs: ${PROJECT_ROOT}/figures/strain_order.txt
          ${PROJECT_ROOT}/figures/gene_order.txt
 
 Run from the repository root, after loading config/config.env:
-  python3 scripts/07_figures/heatmap_order.py
+  python3 scripts/06_hgt/heatmap_order.py
 """
 import sys
 from pathlib import Path

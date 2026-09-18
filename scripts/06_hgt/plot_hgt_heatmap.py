@@ -12,7 +12,7 @@ Inputs : $GENOMES (taxonomy), ${PROJECT_ROOT}/orthofinder/results/Orthogroups/Or
 Outputs: ${PROJECT_ROOT}/figures/hgt_heatmap.png, hgt_heatmap.svg
 
 Run from the repository root, after loading config/config.env:
-  python3 scripts/07_figures/plot_hgt_heatmap.py
+  python3 scripts/06_hgt/plot_hgt_heatmap.py
 """
 from pathlib import Path
 import pandas as pd

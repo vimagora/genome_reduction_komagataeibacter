@@ -14,7 +14,7 @@ Output:
   ${PROJECT_ROOT}/statistics/permutation_null_distribution.txt
 
 Run from the repository root, after loading config/config.env:
-  python3 scripts/08_statistics/permutation_test_transposases.py
+  python3 scripts/07_statistics/permutation_test_transposases.py
 """
 import random
 import sys

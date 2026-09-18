@@ -21,7 +21,7 @@ Fill in the `<TODO>` accessions in `genomes.tsv` and `region.tsv`. Put your path
 and any other changed settings in `config/local.env` (not tracked by git); it is
 loaded at the end of `config.env` and overrides its values.
 
-**Software.** Create the conda environments and install RANGER-DTL:
+**Software.** Create the conda environments:
 
 ```bash
 set -a; source config/config.env; set +a
@@ -29,8 +29,6 @@ for env in ncbi-tools busco orthofinder gtdbtk ete3; do
     conda env create -f envs/$env.yaml -p "$ENV_ROOT/$env-env"
 done
 ```
-
-RANGER-DTL is a standalone binary; set its path in `RANGER_DTL`.
 
 **Databases.** Set in `config/local.env`: GTDB-Tk reference data release 232
 (`GTDBTK_DATA_PATH`), the NCBI taxonomy dump (`TAXONKIT_DB`), the NCBI `nr`
@@ -56,7 +54,7 @@ The taxonomy is updated frequently; record the download date.
 ```bash
 set -a; source config/config.env; set +a
 PY="$ENV_ROOT/ete3-env/bin/python3"
-mkdir -p logs/busco logs/blast logs/orthofinder logs/gtdbtk logs/ranger
+mkdir -p logs/busco logs/blast logs/orthofinder logs/gtdbtk
 ```
 
 SLURM scripts are submitted with `sbatch --account="$SLURM_ACCOUNT"`.
@@ -72,7 +70,7 @@ bash scripts/01_genomes/download_genomes.sh
 ```
 
 Output: `genomes/fna/<sample>.fna`, `genomes/faa/<sample>.faa`,
-`genomes/gff/<sample>.gff`. They are read by steps 2, 3, 5 and 8.
+`genomes/gff/<sample>.gff`. They are read by steps 2, 3, 5 and 7.
 
 ## 2. Genome quality
 
@@ -109,8 +107,8 @@ between the coordinates in `region.tsv`; transposases/IS (products matching
 
 Output: `region/region_cds.tsv` (every CDS in the region, with exclusion flags),
 `region/genes_of_interest.txt` (protein IDs, genome order) and
-`region/genes_of_interest.faa`. The protein list is read by steps 4, 6 and 7;
-the sequences by step 4; `region_cds.tsv` by step 6.5.
+`region/genes_of_interest.faa`. The protein list is read by steps 4 and 6;
+the sequences by step 4.
 
 ## 4. Outgroup search
 
@@ -188,7 +186,7 @@ sbatch --account="$SLURM_ACCOUNT" scripts/05_phylogenomics/orthofinder.sh
 ```
 
 Output: `orthofinder/run_<timestamp>/Results_<date>/`, linked as
-`orthofinder/results`. It is read by steps 6 and 7.
+`orthofinder/results`. It is read by step 6.
 
 ### 5.3 GTDB taxonomy
 
@@ -231,7 +229,7 @@ bash scripts/05_phylogenomics/species_tree.sh
 ```
 
 Output: `hgt_analysis/gtdbtk_itol.tree` and `hgt_analysis/species_tree.newick`.
-The newick tree is read by steps 6.2 and 7.
+The newick tree is used for HGT analysis as described in the article.
 
 ## 6. Horizontal gene transfer
 
@@ -246,81 +244,11 @@ bash scripts/06_hgt/extract_hgt_orthogroups.sh
 ```
 
 Output: `hgt_analysis/gene_to_orthogroup.tsv`, `orthogroups_of_interest.txt`,
-`gene_trees/` and `gene_count_matrix.tsv`. The orthogroup list is read by 6.2;
-`gene_to_orthogroup.tsv` by 6.5 and 7.
+`gene_trees/` and `gene_count_matrix.tsv`.
 
-### 6.2 RANGER-DTL input
+The outputs are used for HGT analysis as described in the article.
 
-Run `prepare_ranger_input.py` to relabel the species tree and each gene tree with
-short species codes, resolve polytomies, and write one RANGER-DTL input file
-(species tree + gene tree) per orthogroup:
-
-```bash
-"$PY" scripts/06_hgt/prepare_ranger_input.py
-```
-
-Output: `hgt_analysis/species_code_map.tsv`, `species_tree_coded.newick` and
-`ranger_input/<OG>.input`. The inputs are read by 6.3; the code map by 6.4.
-
-### 6.3 Reconciliation
-
-Run `ranger_dtl_array.sh` to reconcile each gene tree with the species tree
-(one array task per input file):
-
-```bash
-N=$(ls "$PROJECT_ROOT"/hgt_analysis/ranger_input/OG*.input | wc -l)
-sbatch --account="$SLURM_ACCOUNT" --array=1-${N}%20 scripts/06_hgt/ranger_dtl_array.sh
-```
-
-Output: `hgt_analysis/ranger_output/<OG>.out`. It is read by 6.4.
-
-### 6.4 Transfer events
-
-Run `parse_ranger_hgt.py` to extract the transfers whose recipient is the target
-(direct) or an ancestor of the target:
-
-```bash
-"$PY" scripts/06_hgt/parse_ranger_hgt.py
-```
-
-Output: `hgt_analysis/hgt_summary_per_og.tsv` (counts per orthogroup) and
-`hgt_candidates_detailed.tsv` (one row per transfer). The detailed table is read by 6.5.
-
-### 6.5 Distant donors
-
-Run `filter_distant_donors.sh` to keep the transfers from genomes outside the
-target's taxon at `DONOR_EXCLUDE_RANK`, and annotate the genes in those
-orthogroups with `region/region_cds.tsv`:
-
-```bash
-bash scripts/06_hgt/filter_distant_donors.sh
-```
-
-Output: `hgt_analysis/strong_hgt_ogs_with_donors.tsv`, `hgt_candidate_ogs.txt`,
-`hgt_candidate_genes.tsv` and `hgt_candidate_annotated.tsv`. The candidate
-orthogroups are read by step 7.
-
-## 7. Heatmap
-
-Run `heatmap_order.py` to order the genomes by the ladderized species tree and
-the genes by genome position:
-
-```bash
-"$PY" scripts/07_figures/heatmap_order.py
-```
-
-Output: `figures/strain_order.txt` and `figures/gene_order.txt`. They are read by
-`plot_hgt_heatmap.py`, together with the gene counts from `orthofinder/results`,
-`hgt_analysis/gene_to_orthogroup.tsv`, `hgt_analysis/hgt_candidate_ogs.txt`, the
-species tree and the taxonomy in `genomes.tsv`:
-
-```bash
-"$PY" scripts/07_figures/plot_hgt_heatmap.py
-```
-
-Output: `figures/hgt_heatmap.png` and `figures/hgt_heatmap.svg`.
-
-## 8. Transposase enrichment
+## 7. Transposase enrichment
 
 Run `permutation_test_transposases.py` to compare the number of transposases/IS
 in the region with `N_PERMUTATIONS` random windows of the same size on the same
@@ -328,7 +256,7 @@ sequence (not overlapping the region; seed `PERMUTATION_SEED`), using the
 target's genome and GFF3 annotation from step 1:
 
 ```bash
-"$PY" scripts/08_statistics/permutation_test_transposases.py
+"$PY" scripts/07_statistics/permutation_test_transposases.py
 ```
 
 Output: printed test statistics and `statistics/permutation_null_distribution.txt`.
