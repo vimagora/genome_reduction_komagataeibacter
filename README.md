@@ -36,7 +36,7 @@ steps; the others run with `bash` or `python3`.
 |---|---|---|
 | dnaapler | 1.4.0 | `envs/dnaapler.yaml` |
 | Bakta | 1.12.0 (database v6.0, full) | `envs/bakta.yaml` |
-| NCBI Datasets CLI | not pinned | `envs/ncbi-tools.yaml` |
+| NCBI Datasets CLI | 18.37.0 | `envs/ncbi-tools.yaml` |
 | BLAST+ | 2.17 | `envs/ncbi-tools.yaml` (or a cluster module, `BLAST_SETUP`) |
 | TaxonKit | 0.9.0 | `envs/ncbi-tools.yaml` |
 | BUSCO | 6.1.0 | `envs/busco.yaml` |
