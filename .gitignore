@@ -27,3 +27,5 @@ config/local.env
 /hgt_analysis/
 /figures/
 /statistics/
+/dnaapler/
+/bakta_annot/

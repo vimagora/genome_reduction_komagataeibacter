@@ -9,15 +9,17 @@ Every command is run from the repository root. All outputs are written under
 
 ## 0. Setup
 
-**Inputs.** The pipeline starts from three files in `config/`:
+**Inputs.** The pipeline starts from three files in `config/` and the assembly of
+the target genome (`TARGET_ASSEMBLY` in `config.env`):
 
 | File | Content |
 |---|---|
 | `genomes.tsv` | One row per genome: sample name, NCBI assembly accession, taxonomy (`Phylum`, `Class`, `Order`, `Family`), BUSCO lineage, and `include` (`yes` for genomes used from step 5 on) |
-| `region.tsv` | Target genome (sample name), chromosome accession, start and end of the region |
-| `config.env` | Paths to the work directory, environments and databases, plus analysis settings |
+| `region.tsv` | Target genome (sample name), chromosome (sequence ID in the target's genome FASTA), start and end of the region |
+| `config.env` | Paths to the work directory, target assembly, environments and databases, plus analysis settings |
 
-Fill in the `<TODO>` accessions in `genomes.tsv` and `region.tsv`. Put your paths
+The target's genome files come from steps 1.2–1.3, so its accession in
+`genomes.tsv` can stay `<TODO>` (step 1.1 skips it). Put your paths
 and any other changed settings in `config/local.env` (not tracked by git); it is
 loaded at the end of `config.env` and overrides its values.
 
@@ -25,16 +27,23 @@ loaded at the end of `config.env` and overrides its values.
 
 ```bash
 set -a; source config/config.env; set +a
-for env in ncbi-tools busco orthofinder gtdbtk ete3; do
+for env in ncbi-tools dnaapler bakta busco orthofinder gtdbtk ete3; do
     conda env create -f envs/$env.yaml -p "$ENV_ROOT/$env-env"
 done
 ```
 
-**Databases.** Set in `config/local.env`: GTDB-Tk reference data release 232
-(`GTDBTK_DATA_PATH`), the NCBI taxonomy dump (`TAXONKIT_DB`), the NCBI `nr`
+**Databases.** Set in `config/local.env`: the Bakta database v6.0 full
+(`BAKTA_DB`), GTDB-Tk reference data release 232 (`GTDBTK_DATA_PATH`), the NCBI taxonomy dump (`TAXONKIT_DB`), the NCBI `nr`
 BLAST database with its taxonomy files (`BLASTP_DB`), and the command that makes
 `blastp` available (`BLAST_SETUP`; on CSC Roihu, the `blast-plus` module). BUSCO
 downloads its lineage datasets into `BUSCO_DOWNLOADS` on first use.
+
+The Bakta database is downloaded with Bakta's own tool; it creates the `db`
+folder that `BAKTA_DB` points to:
+
+```bash
+"$ENV_ROOT/bakta-env/bin/bakta_db" download --output "$(dirname "$BAKTA_DB")" --type full
+```
 
 The NCBI taxonomy dump is downloaded into `TAXONKIT_DB` (where internet is
 available); only the four `.dmp` files read by taxonkit are extracted:
@@ -54,16 +63,18 @@ The taxonomy is updated frequently; record the download date.
 ```bash
 set -a; source config/config.env; set +a
 PY="$ENV_ROOT/ete3-env/bin/python3"
-mkdir -p logs/busco logs/blast logs/orthofinder logs/gtdbtk
+mkdir -p logs/dnaapler logs/bakta logs/busco logs/blast logs/orthofinder logs/gtdbtk
 ```
 
 SLURM scripts are submitted with `sbatch --account="$SLURM_ACCOUNT"`.
 
 ## 1. Genomes
 
+### 1.1 Reference genomes
+
 Run `download_genomes.sh` to download the genome sequence, proteins and GFF3
 annotation of every genome in `genomes.tsv` from NCBI (run it where internet is
-available):
+available; rows whose accession is `<TODO>` are skipped):
 
 ```bash
 bash scripts/01_genomes/download_genomes.sh
@@ -71,6 +82,33 @@ bash scripts/01_genomes/download_genomes.sh
 
 Output: `genomes/fna/<sample>.fna`, `genomes/faa/<sample>.faa`,
 `genomes/gff/<sample>.gff`. They are read by steps 2, 3, 5 and 7.
+
+### 1.2 Rotation of the target
+
+Run `rotate_target.sh` to rotate every contig of `TARGET_ASSEMBLY` with dnaapler,
+so that the chromosome starts at dnaA and each plasmid at repA:
+
+```bash
+bash scripts/01_genomes/rotate_target.sh
+```
+
+Output: `dnaapler/<target>/<target>_reoriented.fasta`. It is read by 1.3.
+
+### 1.3 Annotation of the target
+
+Run `annotate_target.sh` to annotate the rotated assembly with Bakta (genus,
+species and strain from `genomes.tsv`) and store the genome, proteins and
+annotation with the downloaded genomes:
+
+```bash
+sbatch --account="$SLURM_ACCOUNT" scripts/01_genomes/annotate_target.sh
+```
+
+Output: `bakta_annot/<target>/` (all Bakta files), copied as
+`genomes/fna/<target>.fna`, `genomes/faa/<target>.faa` and
+`genomes/gff/<target>.gff`. They are read by steps 2, 3, 5 and 7, like the
+downloaded genomes. Run this step after 1.1, so that no downloaded annotation
+replaces the Bakta one.
 
 ## 2. Genome quality
 
@@ -253,11 +291,11 @@ The outputs are used for HGT analysis as described in the article.
 Run `permutation_test_transposases.py` to compare the number of transposases/IS
 in the region with `N_PERMUTATIONS` random windows of the same size on the same
 sequence (not overlapping the region; seed `PERMUTATION_SEED`), using the
-target's genome and GFF3 annotation from step 1:
+target's genome and Bakta annotation from step 1.3:
 
 ```bash
 "$PY" scripts/07_statistics/permutation_test_transposases.py
 ```
 
 Output: printed test statistics and `statistics/permutation_null_distribution.txt`.
-This step only depends on step 1.
+This step only depends on steps 1.2–1.3.

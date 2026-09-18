@@ -21,17 +21,21 @@ open an issue here for questions about the scripts.
 
 ## Reproducing
 
-The pipeline starts from public NCBI records only: it downloads the genomes and
-their NCBI annotations, and every other file is produced by the scripts. It
-assumes a SLURM cluster for the heavy steps; the others run with `bash` or `python3`.
+The pipeline starts from the assembly of the *K. rhaeticus* iGEM-hybrid genome
+and public NCBI records: it rotates and annotates the iGEM-hybrid assembly (dnaapler,
+Bakta), downloads the reference genomes with their NCBI annotations, and every
+other file is produced by the scripts. It assumes a SLURM cluster for the heavy
+steps; the others run with `bash` or `python3`.
 
-1. Put your paths in `config/local.env` (overrides `config/config.env`), and fill in
-   the `<TODO>` accessions in `config/genomes.tsv` and `config/region.tsv`.
+1. Put your paths, including the iGEM-hybrid assembly (`TARGET_ASSEMBLY`), in
+   `config/local.env` (overrides `config/config.env`).
 2. Create the conda environments from `envs/`.
 3. Follow `data_analysis.md` from step 0.
 
 | Tool | Version | Environment |
 |---|---|---|
+| dnaapler | 1.4.0 | `envs/dnaapler.yaml` |
+| Bakta | 1.12.0 (database v6.0, full) | `envs/bakta.yaml` |
 | NCBI Datasets CLI | not pinned | `envs/ncbi-tools.yaml` |
 | BLAST+ | 2.17 | `envs/ncbi-tools.yaml` (or a cluster module, `BLAST_SETUP`) |
 | TaxonKit | 0.9.0 | `envs/ncbi-tools.yaml` |
@@ -42,7 +46,7 @@ assumes a SLURM cluster for the heavy steps; the others run with `bash` or `pyth
 
 ## Data availability
 
-All inputs are public NCBI records listed in `config/genomes.tsv`. The
+The reference genomes are public NCBI records listed in `config/genomes.tsv`. The
 *K. rhaeticus* iGEM-hybrid genome and its sequencing reads are available under
 <TODO: accession>; see also the Data Availability statement of the article.
 
